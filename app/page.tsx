@@ -210,26 +210,34 @@ export default function HomePage() {
         </div>
 
         {/* Team */}
-        <section id="team" className="relative isolate mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-[1.1fr_1fr]">
+        <section id="team" className="relative isolate mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 md:py-28">
           <Aurora className="-right-52 top-10 h-[520px] w-[720px] opacity-50" />
-          <div className="reveal">
+          <div className="reveal max-w-3xl">
             <Eyebrow>Made by {ging.name}</Eyebrow>
             <Title text="From scratch, at Universidad Politécnica de Madrid." accent="From scratch," className="mt-3 text-4xl leading-[1.08] md:text-[56px]" />
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/75">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/75">
               <a href={ging.url} className="font-semibold text-[#5b41cf] underline-offset-4 hover:underline">
                 {ging.name}, the {ging.fullName}
               </a>
               : {ging.about.charAt(0).toLowerCase() + ging.about.slice(1)}
             </p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
             {team.map((m, i) => (
-              <li key={m.name} className={`card reveal p-6 ${i % 2 === 1 ? 'sm:translate-y-6' : ''}`}>
-                <span aria-hidden className="bg-aurora grid size-14 place-items-center rounded-full text-base font-semibold text-ink">
-                  {initials(m.name)}
-                </span>
-                <p className="mt-5 text-lg font-semibold leading-snug">{m.name}</p>
-                <p className="mt-1 text-sm text-ink/65">{m.role}</p>
+              <li
+                key={m.name}
+                className={`card reveal flex flex-col p-6 ${m.lead ? 'lg:col-span-3 lg:p-8' : 'lg:col-span-2'} ${i === team.length - 1 && team.length % 2 === 1 ? 'sm:col-span-2 lg:col-span-2' : ''}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span aria-hidden className={`bg-aurora grid shrink-0 place-items-center rounded-full font-semibold text-ink ${m.lead ? 'size-16 text-lg' : 'size-14 text-base'}`}>
+                    {initials(m.name)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-lg font-semibold leading-snug">{m.name}</p>
+                    <p className="mt-0.5 text-sm font-medium text-[#5b41cf]">{m.role}</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-[15px] leading-relaxed text-ink/75">{m.bio}</p>
               </li>
             ))}
           </ul>
@@ -241,7 +249,7 @@ export default function HomePage() {
             <ArrowUpRight aria-hidden className="mb-auto ml-auto size-6 text-ink/70 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             <p className="text-sm font-semibold">{hackathon.dateLabel}</p>
             <h2 className="font-soft mt-2 text-4xl leading-[1.08]">Build on it with us at the hackathon</h2>
-            <p className="mt-3 text-ink/85">Two days at {hackathon.placeShort}.</p>
+            <p className="mt-3 text-ink/85">One day at ETSIT UPM and online. Four challenges, an iPad Pro or €1,000 to win.</p>
           </Link>
           <a href={deployment.web} className="card card-link reveal group flex min-h-64 flex-col justify-end rounded-[32px] p-9">
             <ArrowUpRight aria-hidden className="mb-auto ml-auto size-6 text-ink/50 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
