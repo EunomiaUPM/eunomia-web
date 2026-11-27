@@ -124,9 +124,33 @@ export const projects = [
   },
 ];
 
+/** The first `lead` people head the team: they go first, on a row of their own. */
 export const team = [
-  { name: 'Joaquín Salvachúa', role: 'Principal Investigator' },
-  { name: 'Andrés Muñoz Arcentales', role: 'Assistant Professor' },
-  { name: 'Carlos Aparicio', role: 'PhD candidate' },
-  { name: 'Rodrigo Menéndez', role: 'Intern' },
+  {
+    name: 'Joaquín Salvachúa',
+    role: 'Professor · Principal Investigator',
+    lead: true,
+    bio: 'UPM professor with a background in formal methods for the specification and verification of protocols, and in multimedia and real-time protocols, as co-author of an RFC. Teaches cloud infrastructure, big data infrastructure, and blockchain and DLT technologies.',
+  },
+  {
+    name: 'Gabriel Huecas',
+    role: 'Professor · Conformance expert',
+    lead: true,
+    bio: 'UPM professor and the conformance expert of the team. Makes sure every piece of EUNOMIA speaks the open standards as written, so that any compliant participant can join the same data space.',
+  },
+  {
+    name: 'Andrés Muñoz Arcentales',
+    role: 'Assistant Professor · Access and usage control expert',
+    bio: 'Assistant Professor at UPM and Senior Researcher at GING, leading access and usage control. Researches smart spaces, data fusion, data spaces, machine learning, digital twins, cloud and edge computing, and big data infrastructure.',
+  },
+  {
+    name: 'Carlos Aparicio',
+    role: 'Senior Researcher · Data space architect',
+    bio: 'Senior Researcher at GING and the architect of EUNOMIA. Designs how authorities, agents and catalogs fit together into a data space.',
+  },
+  {
+    name: 'Rodrigo Menéndez',
+    role: 'Researcher · Identity expert',
+    bio: 'Researcher at GING and the identity expert of the team. Works on decentralised identifiers, verifiable credentials and the wallets that hold them.',
+  },
 ];
