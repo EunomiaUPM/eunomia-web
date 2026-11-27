@@ -1,38 +1,264 @@
-import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Clock, FolderGit2, MapPin, Plus, Ticket } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, ChevronDown, Clock, Coffee, FolderGit2, MapPin, Plus, Scale, Ticket, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import type { CSSProperties } from 'react';
-import { Contract, Exchange, Hill, Identity, Launch, Rocket, Stack, Steps, Summit } from '@/components/art';
+import type { CSSProperties, ReactNode } from 'react';
+import { Contract, Exchange, Hill, Identity, Launch, Rocket, Stack, Summit } from '@/components/art';
 import { Commands } from '@/components/commands';
 import { DaysLeft } from '@/components/days-left';
 import { Footer } from '@/components/footer';
+import { TrackTabs } from '@/components/track-tabs';
 import { Header } from '@/components/header';
 import { ScrollEffects } from '@/components/scroll-effects';
 import { Aurora, Button, Eyebrow, Orb, Title } from '@/components/ui';
-import { beforeYouCome, challenges, faq, hackathon, milestones, needs } from '@/lib/hackathon';
+import { agenda, beforeYouCome, faq, hackathon, milestones, needs, tracks, treeJudging, upmJudging, type Criterion, type Item, type Section, type Track } from '@/lib/hackathon';
 import { deployment } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Hackathon',
-  description: `${hackathon.dateLabel} at ${hackathon.placeShort}: build a data space with EUNOMIA, then build on it.`,
+  description: `${hackathon.dateLabel} at ${hackathon.placeShort}: ${hackathon.tagline} Build a data space with EUNOMIA, then take a challenge.`,
 };
 
 const toBeAnnounced = 'To be announced';
 
-const levelLooks = [
-  { panel: 'from-sky/45 to-sky/10', pill: 'bg-sky/60', art: Hill },
-  { panel: 'from-violet/25 to-violet/5', pill: 'bg-violet/25', art: Steps },
-  { panel: 'from-magenta/25 to-magenta/5', pill: 'bg-magenta/30', art: Summit },
+const trackLooks: Record<string, { wash: string; art: typeof Hill; tone: 'sky' | 'magenta' }> = {
+  upm: {
+    wash: 'radial-gradient(60% 70% at 0% 0%, rgb(157 213 242 / 0.75) 0%, rgb(157 213 242 / 0) 100%), radial-gradient(50% 60% at 100% 100%, rgb(139 108 255 / 0.28) 0%, rgb(139 108 255 / 0) 100%)',
+    art: Hill,
+    tone: 'sky',
+  },
+  tree: {
+    wash: 'radial-gradient(60% 70% at 100% 0%, rgb(232 108 240 / 0.38) 0%, rgb(232 108 240 / 0) 100%), radial-gradient(50% 60% at 0% 100%, rgb(139 108 255 / 0.3) 0%, rgb(139 108 255 / 0) 100%)',
+    art: Summit,
+    tone: 'magenta',
+  },
+};
+
+function ItemText({ item }: { item: Item }) {
+  return typeof item === 'string' ? (
+    <>{item}</>
+  ) : (
+    <>
+      <strong className="font-semibold text-ink">{item[0]}</strong> {item[1]}
+    </>
+  );
+}
+
+function ChallengeSection({ section }: { section: Section }) {
+  const List = section.ordered ? 'ol' : 'ul';
+  return (
+    <div>
+      <h4 className="text-sm font-semibold uppercase tracking-wide text-[#6a4fe0]">{section.heading}</h4>
+      {section.text?.map((t) => (
+        <p key={t} className="mt-2 leading-relaxed text-ink/80">
+          {t}
+        </p>
+      ))}
+      {section.items && (
+        <List className={`mt-2 space-y-1.5 pl-5 leading-relaxed text-ink/80 ${section.ordered ? 'list-decimal' : 'list-disc'}`}>
+          {section.items.map((item, n) => (
+            <li key={n}>
+              <ItemText item={item} />
+            </li>
+          ))}
+        </List>
+      )}
+      {section.closing && <p className="mt-3 border-l-2 border-violet/50 pl-4 italic leading-relaxed text-ink/75">{section.closing}</p>}
+    </div>
+  );
+}
+
+function Points({ criteria, total, header = 'Criterion' }: { criteria: Criterion[]; total?: string; header?: string }) {
+  return (
+    <table className="mt-3 w-full border-collapse text-[15px]">
+      <thead>
+        <tr className="border-b border-ink/15 text-left text-sm text-ink/60">
+          <th className="py-2 pr-3 font-medium">{header}</th>
+          <th className="py-2 text-right font-medium">Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {criteria.map((c) => (
+          <tr key={c.title} className="border-b border-ink/10 align-top">
+            <td className="py-3 pr-3">
+              <span className="font-semibold">{c.title}</span>
+              <span className="mt-0.5 block text-sm leading-relaxed text-ink/65">{c.body}</span>
+            </td>
+            <td className="py-3 text-right font-semibold tabular-nums text-[#5b41cf]">{c.points}</td>
+          </tr>
+        ))}
+      </tbody>
+      {total && (
+        <tfoot>
+          <tr className="font-semibold">
+            <td className="pt-3">Total</td>
+            <td className="pt-3 text-right tabular-nums text-[#5b41cf]">{total}</td>
+          </tr>
+        </tfoot>
+      )}
+    </table>
+  );
+}
+
+const levelLabels = [
+  { range: '0–1', className: 'text-[#b3261e]' },
+  { range: '2', className: 'text-[#8a6500]' },
+  { range: '3–4', className: 'text-[#1e7e34]' },
 ];
+
+function UpmJudging() {
+  return (
+    <>
+      <ul className="mt-4 flex flex-wrap gap-2 text-sm">
+        {upmJudging.summary.map((x) => (
+          <li key={x.label} className="rounded-full bg-sky/30 px-4 py-2">
+            {x.label} <span className="font-semibold text-[#5b41cf]">{x.points}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-8 grid gap-10 lg:grid-cols-2">
+        <div>
+          <h4 className="text-lg font-semibold">I. Cross-cutting criteria, for every team</h4>
+          <Points criteria={upmJudging.crossCutting} total="50" />
+        </div>
+        <div>
+          <h4 className="text-lg font-semibold">III. Bonus: conceptual design and business models (up to +10)</h4>
+          <Points criteria={upmJudging.bonus} header="Level" />
+        </div>
+        {upmJudging.technical.map((t) => (
+          <div key={t.challenge}>
+            <h4 className="text-lg font-semibold">
+              II. Technical execution · Challenge {t.challenge}: {t.title}
+            </h4>
+            <p className="mt-2 border-l-2 border-violet/50 pl-4 text-sm leading-relaxed text-ink/70">{t.note}</p>
+            <Points criteria={t.criteria} total="50" />
+          </div>
+        ))}
+      </div>
+      <h4 className="mt-10 text-lg font-semibold">Tiebreak</h4>
+      <ol className="mt-2 list-decimal space-y-1.5 pl-5 leading-relaxed text-ink/80">
+        {upmJudging.tiebreak.map((t) => (
+          <li key={t}>{t}</li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
+function TreeJudging() {
+  return (
+    <>
+      <p className="mt-2 leading-relaxed text-ink/75">
+        Out of <strong className="font-semibold text-ink">100 points</strong>. For each criterion the jury gives a level from 0 to 4, on this scale.
+      </p>
+      <div className="mt-6 space-y-3">
+        {treeJudging.map((c, n) => (
+          <div key={c.title} className="overflow-hidden rounded-[18px] ring-1 ring-ink/10">
+            <div className="flex justify-between gap-3 bg-mist px-5 py-3 font-semibold">
+              <span>
+                {n + 1}. {c.title}
+              </span>
+              <span className="whitespace-nowrap text-[#5b41cf]">{c.points} pts</span>
+            </div>
+            <div className="grid md:grid-cols-3">
+              {c.levels.map((l, k) => (
+                <p key={k} className="border-t border-ink/10 px-5 py-3 text-sm leading-relaxed text-ink/75 md:border-l md:first:border-l-0">
+                  <span className={`block text-xs font-bold uppercase tracking-wide ${levelLabels[k].className}`}>{levelLabels[k].range}</span>
+                  {l}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+const judgingOf: Record<string, () => ReactNode> = { upm: UpmJudging, tree: TreeJudging };
+
+/** What a track tab shows: its challenges, then how they are scored, folded away. */
+function TrackPanel({ track }: { track: Track }) {
+  const look = trackLooks[track.id];
+  const Judging = judgingOf[track.id];
+  return (
+    <div className="mx-auto max-w-5xl">
+      <div className="tab-item flex items-center gap-5 rounded-[26px] bg-white/80 p-5 shadow-[0_14px_34px_-26px_rgb(36_35_76/0.5)] sm:p-6">
+        <Orb icon={Trophy} tone={look.tone} />
+        <div className="min-w-0 flex-1">
+          <p className="font-soft text-3xl leading-tight">{track.prize}</p>
+          <p className="mt-1 text-sm leading-snug text-ink/70">{track.prizeNote}</p>
+        </div>
+        <look.art className="tab-art hidden h-20 w-auto shrink-0 text-ink sm:block" />
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {track.challenges.map((c, n) => (
+          <details
+            key={c.number}
+            open={n === 0}
+            className="smooth tab-item group rounded-[22px] bg-white/85 shadow-[0_14px_34px_-26px_rgb(36_35_76/0.5)] transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-26px_rgb(36_35_76/0.6)]"
+            style={{ '--i': n + 1 } as CSSProperties}
+          >
+            <summary className="flex cursor-pointer list-none items-center gap-4 p-6 [&::-webkit-details-marker]:hidden">
+              <span className="bg-aurora grid size-11 shrink-0 place-items-center rounded-full text-lg font-semibold transition-transform duration-500 group-open:rotate-[360deg]">
+                {c.number}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="font-soft block text-2xl leading-tight">
+                  {c.title}
+                  {c.prize && (
+                    <span className="ml-2 inline-block translate-y-[-3px] rounded-full bg-[#fff6dd] px-2.5 py-0.5 align-middle font-sans text-xs font-semibold text-[#8a6500]">
+                      {c.prize}
+                    </span>
+                  )}
+                </span>
+                <span className="mt-1 block text-ink/65">{c.tagline}</span>
+              </span>
+              <Plus aria-hidden className="size-5 shrink-0 text-[#6a4fe0] transition-transform duration-300 group-open:rotate-45" />
+            </summary>
+            <div className="space-y-6 px-6 pb-7 md:pl-[84px]">
+              {c.sections.map((sec) => (
+                <ChallengeSection key={sec.heading} section={sec} />
+              ))}
+              {c.milestones && (
+                <a href="#milestones" className="group/l inline-flex items-center gap-1 text-sm font-semibold text-[#5b41cf]">
+                  The four milestones get you there
+                  <ArrowRight aria-hidden className="size-4 transition-transform group-hover/l:translate-x-0.5" />
+                </a>
+              )}
+            </div>
+          </details>
+        ))}
+      </div>
+
+      <details
+        className="smooth tab-item group/j mt-6 rounded-[22px] border border-dashed border-ink/20 bg-white/45 backdrop-blur transition-colors open:border-solid open:bg-white/85"
+        style={{ '--i': track.challenges.length + 1 } as CSSProperties}
+      >
+        <summary className="flex cursor-pointer list-none items-center gap-3 px-6 py-5 [&::-webkit-details-marker]:hidden">
+          <Scale aria-hidden className="size-5 shrink-0 text-[#6a4fe0]" strokeWidth={1.8} />
+          <span className="flex-1 font-semibold">How the jury scores</span>
+          <span className="text-sm text-ink/55 group-open/j:hidden">Show the rubric</span>
+          <ChevronDown aria-hidden className="size-5 shrink-0 text-[#6a4fe0] transition-transform duration-300 group-open/j:rotate-180" />
+        </summary>
+        <div className="px-6 pb-7">
+          <Judging />
+        </div>
+      </details>
+
+      {track.funding && <p className="tab-item mt-5 px-2 text-sm leading-relaxed text-ink/60" style={{ '--i': track.challenges.length + 2 } as CSSProperties}>{track.funding}</p>}
+    </div>
+  );
+}
 
 const milestoneArt = [Rocket, Identity, Contract, Exchange];
 
 export default function HackathonPage() {
   const facts = [
     { icon: CalendarDays, label: 'When', value: hackathon.days.join(' and ') },
-    { icon: MapPin, label: 'Where', value: `${hackathon.place}. ${hackathon.address}`, href: hackathon.map },
-    { icon: Clock, label: 'Schedule and room', value: [hackathon.schedule, hackathon.room].filter(Boolean).join(', ') || toBeAnnounced },
-    { icon: Ticket, label: 'Registration', value: hackathon.registrationUrl ? 'Save your seat' : toBeAnnounced, href: hackathon.registrationUrl ?? undefined },
+    { icon: MapPin, label: 'Where', value: `${hackathon.format}. ${hackathon.place}, ${hackathon.address}`, href: hackathon.map },
+    { icon: Clock, label: 'Schedule and room', value: [hackathon.schedule, hackathon.room].filter(Boolean).join(', ') || toBeAnnounced, href: '#agenda' },
+    { icon: Ticket, label: 'Registration', value: hackathon.registrationUrl ? 'Register for the hackathon' : toBeAnnounced, href: hackathon.registrationUrl ?? undefined },
   ];
   return (
     <div className="relative overflow-x-clip">
@@ -40,9 +266,8 @@ export default function HackathonPage() {
       <Header
         items={[
           { text: 'The project', href: '/' },
-          { text: 'Milestones', href: '#milestones' },
+          { text: 'Agenda', href: '#agenda' },
           { text: 'Challenges', href: '#challenges' },
-          { text: 'Tools', href: '#tools' },
         ]}
       />
 
@@ -68,15 +293,17 @@ export default function HackathonPage() {
               </p>
               <Title as="h1" text="Build a data space. Then build on it." accent="Then build on it." accentClass="text-sky" className="mt-7 max-w-[640px] text-5xl leading-[1.03] sm:text-6xl md:text-[76px]" />
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-white/90 md:text-xl">
-                Two days, hands-on with EUNOMIA. Start from a clean laptop, stand up your own authority and agents, negotiate a
-                contract and move real data. Then take a challenge and make it yours.
+                {hackathon.tagline} One day, at UPM and online. Stand up a data space with EUNOMIA in under an hour, then take on
+                emergencies, the cloud or privacy, with an iPad Pro or €1,000 for the winners.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Button href={deployment.web} variant="white">
-                  Open the deployment site
-                </Button>
-                <Button href={deployment.repo} variant="glass">
-                  Clone the repository
+                {hackathon.registrationUrl && (
+                  <Button href={hackathon.registrationUrl} variant="white">
+                    Register
+                  </Button>
+                )}
+                <Button href="#challenges" variant="glass">
+                  See the challenges
                 </Button>
                 <p className="ml-1 text-sm font-medium text-white/90">
                   <DaysLeft start={hackathon.start} end={hackathon.end} />
@@ -105,13 +332,37 @@ export default function HackathonPage() {
           ))}
         </dl>
 
+        {/* Agenda */}
+        <section id="agenda" className="mx-auto grid w-full max-w-6xl gap-10 px-4 pt-20 sm:px-6 md:pt-28 lg:grid-cols-[1fr_1.4fr]">
+          <div className="reveal">
+            <Eyebrow>The day</Eyebrow>
+            <Title text="One day, from welcome to awards." accent="to awards." className="mt-3 text-4xl leading-[1.08] md:text-[56px]" />
+            <p className="mt-5 max-w-md text-lg leading-relaxed text-ink/75">
+              {hackathon.days[0]}. {hackathon.format}.
+            </p>
+          </div>
+          <ol className="card reveal overflow-hidden">
+            {agenda.map((a) => (
+              <li key={a.time} className={`flex gap-5 border-b border-ink/8 px-7 py-4 last:border-b-0 ${a.pause ? 'bg-sky/25' : ''}`}>
+                <span className="w-28 shrink-0 font-semibold tabular-nums text-[#5b41cf]">{a.time}</span>
+                <span className="flex items-center gap-2">
+                  {a.pause && <Coffee aria-hidden className="size-4 text-ink/60" />}
+                  {a.activity}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
         {/* Milestones */}
         <section id="milestones" className="relative isolate mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 md:py-28">
           <Aurora className="-right-52 top-20 h-[620px] w-[760px] opacity-50" />
           <div className="reveal max-w-3xl">
-            <Eyebrow>Start here</Eyebrow>
+            <Eyebrow>Challenge 1 starts here</Eyebrow>
             <Title text="Four milestones to your first data space." accent="your first data space." className="mt-3 text-4xl leading-[1.08] md:text-[56px]" />
-            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/75">Each one ends with something you can see. Together they take about an hour.</p>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/75">
+              Each one ends with something you can see. Together they take about an hour: Challenge 1 asks you to do it in under 60 minutes.
+            </p>
           </div>
           <ol data-progress data-start="0.62" data-end="0.72" className="relative mt-14 space-y-5">
             <div aria-hidden className="absolute bottom-20 left-[27px] top-14 hidden w-0.5 rounded-full bg-ink/10 md:block">
@@ -157,37 +408,27 @@ export default function HackathonPage() {
         </section>
 
         {/* Challenges */}
-        <section id="challenges" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:py-20">
-          <div className="reveal">
-            <Eyebrow>Then</Eyebrow>
-            <Title text="Pick a challenge." accent="challenge." className="mt-3 text-5xl leading-[1.05] md:text-[72px]" />
+        <section id="challenges" className="py-16 md:py-20">
+          <div className="reveal mx-auto w-full max-w-6xl px-4 sm:px-6">
+            <div className="max-w-3xl">
+              <Eyebrow>Then</Eyebrow>
+              <Title text="Pick a challenge." accent="challenge." className="mt-3 text-5xl leading-[1.05] md:text-[72px]" />
+              <p className="mt-5 text-lg leading-relaxed text-ink/75">
+                Four challenges in two tracks. Each track has its own judging and its own prize.
+              </p>
+            </div>
           </div>
-          <div className="mt-12 grid gap-4 lg:grid-cols-3">
-            {challenges.map((group, i) => {
-              const Art = levelLooks[i].art;
-              return (
-              <div key={group.level} className={`reveal rounded-[32px] bg-gradient-to-b p-3 ${levelLooks[i].panel}`}>
-                <div className="flex items-end justify-between px-3 pb-3 pt-2">
-                  <p className={`rounded-full px-4 py-1.5 text-sm font-semibold ${levelLooks[i].pill}`}>{group.level}</p>
-                  <Art className="h-20 w-auto text-ink" />
-                </div>
-                <div className="space-y-3">
-                  {group.items.map((c) => (
-                    <article key={c.title} className="rounded-[22px] bg-white/85 p-6 shadow-[0_14px_34px_-26px_rgb(36_35_76/0.5)]">
-                      <h3 className="font-soft text-2xl leading-tight">{c.title}</h3>
-                      <p className="mt-2 text-[15px] leading-relaxed text-ink/75">{c.body}</p>
-                      {c.link && (
-                        <a href={deployment[c.link.to]} className="group mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#5b41cf]">
-                          {c.link.text}
-                          <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
-                        </a>
-                      )}
-                    </article>
-                  ))}
-                </div>
-              </div>
-              );
-            })}
+          <div className="reveal mt-10 px-3 sm:px-5">
+            <TrackTabs
+              tabs={tracks.map((t) => ({
+                id: t.id,
+                name: t.name,
+                span: t.span,
+                prize: t.prize,
+                wash: trackLooks[t.id].wash,
+                content: <TrackPanel track={t} />,
+              }))}
+            />
           </div>
         </section>
 

@@ -16,7 +16,7 @@ npm run types:check
 | `app/page.tsx` | The project landing |
 | `app/hackathon/page.tsx` | The hackathon landing, with its pointers to eunomia-deployment |
 | `lib/site.ts` | Project facts: links, pieces, standards, projects, team, funding |
-| `lib/hackathon.ts` | Event facts: dates, place, milestones, challenges. Fill in `schedule`, `room` and `registrationUrl` and the page shows them |
+| `lib/hackathon.ts` | Event facts: date, place, agenda, milestones, challenges, judging. Fill in `schedule`, `room` and `registrationUrl` and the page shows them |
 | `app/globals.css` | Theme tokens, from the logo, and every animation |
 | `components/art.tsx` | The illustrations: `L` lines draw themselves, `F` shapes pop in after them |
 | `components/constellation.tsx` | The pieces coming together with the scroll, on the project landing |
